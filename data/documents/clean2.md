@@ -1,0 +1,1 @@
+Brookfield's fictional public dataset lists recycling collection schedules for 8 districts. Six districts receive weekly collection, and 2 receive collection twice each week. A separate calendar identifies holiday changes. The schedule describes planned service frequency; it does not report waste weight or the number of households using each collection.

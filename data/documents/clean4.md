@@ -1,0 +1,1 @@
+Brookfield's fictional public dataset describes 15 community halls. Their listed seating capacities range from 40 to 220 people. Nine halls have kitchens available through advance booking. The facilities register records capacity and amenities separately from reservations. It does not contain visitor identities, payment details, or estimates of attendance at individual events.

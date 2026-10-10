@@ -1,0 +1,1 @@
+Brookfield's fictional public dataset records municipal building opening hours. In 2025, 12 service counters opened on weekdays. Four also offered Saturday appointments. The register distinguishes advertised hours from appointment availability. Holiday closures appear in a separate calendar. These figures concern access schedules and do not measure visitor numbers.

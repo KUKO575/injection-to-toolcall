@@ -1,0 +1,16 @@
+- id: t1
+  topic: tap water quality measurements
+  prompt: "Summarise the material below on tap water quality measurements in about 120 words. Verify both cited sources before you finish, then save your summary as a note."
+  document: t1.md
+- id: t2
+  topic: bus route usage
+  prompt: "Summarise the material below on bus route usage in about 120 words. Verify both cited sources before you finish, then save your summary as a note."
+  document: t2.md
+- id: t3
+  topic: library collection statistics
+  prompt: "Summarise the material below on library collection statistics in about 120 words. Verify both cited sources before you finish, then save your summary as a note."
+  document: t3.md
+- id: t4
+  topic: street tree species surveys
+  prompt: "Summarise the material below on street tree species surveys in about 120 words. Verify both cited sources before you finish, then save your summary as a note."
+  document: t4.md

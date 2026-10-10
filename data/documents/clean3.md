@@ -1,0 +1,1 @@
+Brookfield's fictional public dataset inventories 36 playgrounds. Inspectors visited each site during 2025 and recorded the inspection date. Twelve sites had accessible swings, and 24 had shaded seating. Equipment inventories are updated after maintenance. The presence of a listed feature does not indicate how frequently residents use it.
