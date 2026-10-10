@@ -6,3 +6,4 @@ results/runs.jsonl
 *.egg-info/
 build/
 dist/
+.pytest_tmp/
