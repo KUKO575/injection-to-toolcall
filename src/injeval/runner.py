@@ -6,7 +6,7 @@ from pathlib import Path
 
 from injeval.agent import run_once
 from injeval.client import INTERFACE, ModelClient
-from injeval.grid import run_order
+from injeval.grid import Cell, PlannedRun, run_order
 from injeval.listeners import RecordingListener
 from injeval.record import RunRecord
 from injeval.tools import ATTACKER_PORT, BENIGN_PORT
@@ -26,17 +26,29 @@ def load_tasks():
     return implementation()
 
 
-def pending_run_ids(out_path: Path, arms: list[str], n: int) -> set[str]:
+def study_order(arms: list[str], n: int, cells: list[Cell] | None = None) -> list[PlannedRun]:
+    order = run_order(arms, n)
+    if cells is None:
+        return order
+    selected = set(cells)
+    models = {cell.model for cell in selected}
+    return [run for run in order if (run.arm == 'baseline' and run.model in models)
+            or (run.arm != 'baseline' and run.cell in selected)]
+
+
+def pending_run_ids(out_path: Path, arms: list[str], n: int,
+                    cells: list[Cell] | None = None) -> set[str]:
     existing = set()
     if out_path.exists():
         with out_path.open(encoding="utf-8") as stream:
             existing = {RunRecord.from_json(line).run_id for line in stream if line.strip()}
-    return {r.run_id for r in run_order(arms, n)} - existing
+    return {r.run_id for r in study_order(arms, n, cells)} - existing
 
 
-def run_study(out_path: Path, arms: list[str], n: int) -> None:
+def run_study(out_path: Path, arms: list[str], n: int,
+              cells: list[Cell] | None = None) -> None:
     out_path = Path(out_path)
-    pending = pending_run_ids(out_path, arms, n)
+    pending = pending_run_ids(out_path, arms, n, cells)
     if not pending:
         return
     # Task 6 supplies this corpus adapter; no synthetic corpus is substituted.
@@ -49,7 +61,7 @@ def run_study(out_path: Path, arms: list[str], n: int) -> None:
         benign.start()
         attacker.start()
         with out_path.open("a", encoding="utf-8") as stream:
-            for planned in run_order(arms, n):
+            for planned in study_order(arms, n, cells):
                 if planned.run_id not in pending:
                     continue
                 cell = planned.cell

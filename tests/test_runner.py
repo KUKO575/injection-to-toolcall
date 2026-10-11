@@ -8,6 +8,27 @@ from injeval.runner import pending_run_ids, run_study
 from test_agent import FakeClient
 
 
+def test_selected_pilot_schedule_and_resume(tmp_path):
+    from injeval.grid import Cell
+    from injeval.runner import study_order
+
+    cells = [Cell('llama3.1:8b', 'top', 'imperative', 1),
+             Cell('llama3.1:8b', 'bottom', 'prose', 5)]
+    order = study_order(['pilot', 'baseline'], 12, cells)
+    pilot = [r for r in order if r.arm == 'pilot']
+    assert len(pilot) == 24
+    assert all(sum(r.cell == cell for r in pilot) == 12 for cell in cells)
+    baseline = [r for r in order if r.arm == 'baseline']
+    assert baseline and all(r.model == 'llama3.1:8b' and not r.injection_id for r in baseline)
+    assert order[0].arm == order[-1].arm == 'baseline'
+    log = tmp_path / 'pilot.jsonl'
+    record = replace(run_once(FakeClient([Action('final', text='a')]), 'c', 't', 's'),
+                     run_id=pilot[0].run_id)
+    log.write_text(record.to_json() + '\n', encoding='utf-8')
+    assert pending_run_ids(log, ['pilot', 'baseline'], 12, cells) == {
+        r.run_id for r in order} - {record.run_id}
+
+
 def test_resume_skips_run_ids_already_in_the_log(tmp_path):
     log = tmp_path / "runs.jsonl"
     order = run_order(["main"], 24)
