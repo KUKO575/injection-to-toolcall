@@ -36,6 +36,12 @@ def test_wilson_known_interval():
     assert wilson(12, 24) == pytest.approx((0.314271, 0.685729), abs=1e-6)
 
 
+@pytest.mark.parametrize('successes,n', [(0.5, 24), (1, 24.5), (float('nan'), 24)])
+def test_wilson_rejects_non_integer_counts(successes, n):
+    with pytest.raises(ValueError):
+        wilson(successes, n)
+
+
 def test_invalid_runs_stay_in_the_denominator():
     recs = [coded(did=True)] * 6 + [coded(invalid=True)] * 6
     row = rate_table(recs, by=[]).iloc[0]
@@ -95,6 +101,7 @@ def test_analysis_cli_emits_headline_auxiliary_tables_and_figures(tmp_path, all_
                              '--out', str(out)], capture_output=True, text=True,
                             env=os.environ | {'PYTHONPATH': str(root / 'src')})
     assert result.returncode == 0, result.stderr
+    assert 'Said/did gap (all runs)' in result.stdout
     assert 'sign' + 'ificant' not in result.stdout.lower()
     cell = pd.read_csv(out / 'tables/per_cell.csv').iloc[0]
     assert cell['n'] == 2 and cell['said'] == cell['did'] == 0.5

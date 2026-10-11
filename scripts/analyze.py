@@ -103,6 +103,10 @@ def main() -> None:
     print(f'Headline: {len(frame)} runs, including {int(frame["invalid"].sum())} invalid runs.')
     print('Valid-only auxiliary tables: suffix _valid_only.')
     print(rate_table(frame, ['arm']).to_string(index=False))
+    print('Said/did gap (all runs):')
+    for arm, group in frame.groupby('arm', sort=True):
+        said, did, gap = said_did_gap(group)
+        print(f'{arm}: n={len(group)}, said={said:.6f}, did={did:.6f}, gap={gap:.6f}')
     print(f'Tables: {tables}; figures: {figures}')
 
 

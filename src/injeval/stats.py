@@ -2,11 +2,16 @@
 
 from dataclasses import asdict, is_dataclass
 from math import isfinite, sqrt
+from operator import index
 
 import pandas as pd
 
 
 def wilson(successes: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    try:
+        successes, n = index(successes), index(n)
+    except TypeError as exc:
+        raise ValueError('counts must be integers') from exc
     if n <= 0 or successes < 0 or successes > n:
         raise ValueError('counts must satisfy n > 0 and 0 <= successes <= n')
     if not isfinite(z) or z <= 0:
