@@ -23,6 +23,8 @@ class RunRecord:
     steps_used: int
     wall_clock_s: float
     parse_failed: bool
+    parse_retries: int = 0
+    run_error: str | None = None
 
     def __post_init__(self) -> None:
         if self.arm not in {"main", "baseline", "pilot", "defense", "defense_control"}:

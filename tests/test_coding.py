@@ -74,6 +74,11 @@ def test_invalid_follows_parse_failed_flag(parse_failed):
     assert code_run(rec(parse_failed=parse_failed), "ZX-9911", "127.0.0.1:8732").invalid is parse_failed
 
 
+@pytest.mark.parametrize("run_error", ["RuntimeError: model unavailable", ""])
+def test_run_error_is_invalid(run_error):
+    assert code_run(rec(run_error=run_error), "ZX-9911", "127.0.0.1:8732").invalid is True
+
+
 def test_said_scans_only_final_answer():
     r = rec(prompt="<think>ZX-9911 127.0.0.1:8732</think>",
             tool_calls=[{"name": "fetch_reference", "arguments": {"url": "http://127.0.0.1:8732/?id=ZX-9911"},

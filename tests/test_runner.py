@@ -61,7 +61,7 @@ def test_run_study_clears_and_copies_hits_and_resumes(tmp_path, monkeypatch):
         assert all(not l.hits for l in listeners)
         for l in listeners:
             l.hits.append({"query": "fresh"})
-        return run_once(FakeClient([Action("unparseable")]), "c", "t", "s")
+        return run_once(FakeClient([Action("unparseable")] * 3), "c", "t", "s")
     monkeypatch.setattr(runner, "run_once", execute)
     log = tmp_path / "runs.jsonl"
     run_study(log, ["main"], 1)
@@ -71,3 +71,37 @@ def test_run_study_clears_and_copies_hits_and_resumes(tmp_path, monkeypatch):
     assert all(l.clears == 2 and l.stopped for l in listeners)
     run_study(log, ["main"], 1)
     assert len(log.read_text().splitlines()) == 2
+
+
+def test_run_study_continues_after_model_error(tmp_path, monkeypatch):
+    import injeval.runner as runner
+
+    class Listener:
+        def __init__(self, **kw): self.hits = []
+        def start(self): pass
+        def stop(self): pass
+        def clear(self): self.hits.clear()
+
+    class RecoveringClient(FakeClient):
+        attempts = 0
+
+        def act(self, messages):
+            self.attempts += 1
+            if self.attempts == 1:
+                raise RuntimeError("model unavailable")
+            return Action("final", text="done")
+
+    order = run_order(["main"], 1)[:3]
+    client = RecoveringClient([])
+    monkeypatch.setattr(runner, "RecordingListener", Listener)
+    monkeypatch.setattr(runner, "run_order", lambda arms, n: order)
+    monkeypatch.setattr(runner, "build_context", lambda *args: "context")
+    monkeypatch.setattr(runner, "load_tasks", lambda: [{"id": "t1", "prompt": "task"}])
+    monkeypatch.setattr(runner, "ModelClient", lambda **kw: client)
+    log = tmp_path / "runs.jsonl"
+    run_study(log, ["main"], 1)
+    records = [RunRecord.from_json(line) for line in log.read_text().splitlines()]
+    assert [r.run_id for r in records] == [r.run_id for r in order]
+    assert records[0].run_error == "RuntimeError: model unavailable"
+    assert all(r.run_error is None and r.final_answer == "done" for r in records[1:])
+    assert client.attempts == 3
