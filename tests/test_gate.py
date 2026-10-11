@@ -13,7 +13,7 @@ def records(arm, successes, n=10, **changes):
         task_id='t1', injection_id='' if arm == 'baseline' else 'i1', seed=0,
         temperature=0.7, arm=arm, prompt='', final_answer='', tool_calls=[],
         benign_hits=[], attacker_hits=[], steps_used=1, wall_clock_s=0,
-        parse_failed=False,
+        parse_failed=False, max_steps=8,
     )
     field = 'benign_hits' if arm == 'baseline' else 'attacker_hits'
     return [replace(template, **{field: [{}] if i < successes else []}, **changes)

@@ -21,7 +21,8 @@ class FakeClient:
 def test_agent_stops_at_max_steps(monkeypatch):
     monkeypatch.setattr("injeval.agent.fetch_reference", lambda **kw: "ok")
     a = Action("tool", "fetch_reference", {"url": "http://127.0.0.1:8731/ref"})
-    assert run_once(FakeClient([a] * 10), "c", "t", "s", max_steps=10).steps_used == 6
+    r = run_once(FakeClient([a] * 10), "c", "t", "s", max_steps=10)
+    assert r.steps_used == 8 and r.max_steps == 8
 
 
 def test_agent_continues_after_attacker_fetch_so_task_ok_is_measurable(monkeypatch):
@@ -35,6 +36,7 @@ def test_agent_continues_after_attacker_fetch_so_task_ok_is_measurable(monkeypat
     r = run_once(client, "c", "t", "s")
     assert [tc["name"] for tc in r.tool_calls] == ["fetch_reference", "save_note"]
     assert r.final_answer == "done" and r.steps_used == 3
+    assert r.max_steps == 8
     assert client.messages[1][-1]["content"] == ""
 
 
@@ -64,6 +66,7 @@ def test_unparseable_recovery_resets_consecutive_limit(monkeypatch):
 def test_unparseable_at_step_budget_is_parse_failed():
     r = run_once(FakeClient([Action("unparseable")]), "c", "t", "s", max_steps=1)
     assert r.parse_failed is True and r.parse_retries == 1
+    assert r.max_steps == 1
 
 
 @pytest.mark.parametrize("error", [RuntimeError("model unavailable"), ValueError("bad response")])

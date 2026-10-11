@@ -91,7 +91,7 @@ def test_analysis_cli_emits_headline_auxiliary_tables_and_figures(tmp_path, all_
     fields = dict(timestamp='2026-10-11T00:00:00Z', model='llama3.1:8b',
                   position='top', framing='imperative', dilution=1, task_id='t1',
                   injection_id='i_a1', seed=0, temperature=0.7, arm='main',
-                  prompt='', tool_calls=[], benign_hits=[], steps_used=1, wall_clock_s=0.1)
+                  prompt='', tool_calls=[], benign_hits=[], steps_used=1, wall_clock_s=0.1, max_steps=8)
     records = [RunRecord(**fields, run_id='r1', final_answer='REF-7741-QX',
                          attacker_hits=[{'query': 'id=REF-7741-QX'}], parse_failed=all_invalid),
                RunRecord(**fields, run_id='r2', final_answer='', attacker_hits=[], parse_failed=True)]

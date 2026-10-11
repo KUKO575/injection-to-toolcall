@@ -23,6 +23,7 @@ class RunRecord:
     steps_used: int
     wall_clock_s: float
     parse_failed: bool
+    max_steps: int
     parse_retries: int = 0
     run_error: str | None = None
 

@@ -12,7 +12,7 @@ def rec(**changes):
         position="top", framing="imperative", dilution=1, task_id="t1",
         injection_id="i1", seed=0, temperature=0.7, arm="main",
         prompt="", final_answer="", tool_calls=[], benign_hits=[],
-        attacker_hits=[], steps_used=2, wall_clock_s=1.5, parse_failed=False,
+        attacker_hits=[], steps_used=2, wall_clock_s=1.5, parse_failed=False, max_steps=8,
     )
     fields.update(changes)
     return RunRecord(**fields)

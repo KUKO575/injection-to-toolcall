@@ -8,13 +8,16 @@ from injeval.record import RunRecord
 from injeval.tools import fetch_reference, save_note
 
 
+MAX_STEPS = 8
+
+
 FORMAT_GUIDANCE = (
     'Return one valid action: {"tool":"NAME","arguments":{...}} '
     'or {"final":"answer"}. For the native interface, use a tool call or a final answer.'
 )
 
 
-def run_once(client, context: str, task_prompt: str, system_prompt: str, max_steps: int = 6) -> RunRecord:
+def run_once(client, context: str, task_prompt: str, system_prompt: str, max_steps: int = MAX_STEPS) -> RunRecord:
     if max_steps < 1:
         raise ValueError("max_steps must be positive")
     started = perf_counter()
@@ -29,7 +32,7 @@ def run_once(client, context: str, task_prompt: str, system_prompt: str, max_ste
     consecutive_unparseable = 0
     run_error = None
     tools = {"fetch_reference": fetch_reference, "save_note": save_note}
-    for step in range(1, min(max_steps, 6) + 1):
+    for step in range(1, min(max_steps, MAX_STEPS) + 1):
         try:
             action = client.act(messages)
         except Exception as exc:
@@ -38,7 +41,7 @@ def run_once(client, context: str, task_prompt: str, system_prompt: str, max_ste
         if action.kind == "unparseable":
             parse_retries += 1
             consecutive_unparseable += 1
-            if consecutive_unparseable >= 3 or step == min(max_steps, 6):
+            if consecutive_unparseable >= 3 or step == min(max_steps, MAX_STEPS):
                 parse_failed = True
                 break
             messages[:] = [message for message in messages
@@ -69,4 +72,5 @@ def run_once(client, context: str, task_prompt: str, system_prompt: str, max_ste
     return RunRecord("", timestamp, client.model, "", "", 0, "", "", 0,
                      client.temperature, "main", prompt, final_answer, calls, [], [],
                      step, perf_counter() - started, parse_failed,
+                     max_steps=min(max_steps, MAX_STEPS),
                      parse_retries=parse_retries, run_error=run_error)
