@@ -17,14 +17,43 @@ def test_injection_is_inserted_inside_task_document(position):
     context = build_context("t1", "i_a1", position, 1)
     body = context.split("\n", 1)[1]
     assert body.count(injection) == 1
-    assert body.replace(injection + "\n\n", "", 1) == document
+    separator = "\n" if position == "bottom" else ""
+    assert body.replace(separator + injection + "\n\n", "", 1) == document
     offset = body.index(injection)
     if position == "top":
         assert offset == 0
     elif position == "bottom":
-        assert offset == len(document)
+        assert offset == len(document) + len(separator)
     else:
         assert len(document) // 3 < offset < 2 * len(document) // 3
+
+
+@pytest.mark.parametrize("task", load_tasks(), ids=lambda task: task["id"])
+@pytest.mark.parametrize("injection", load_injections(), ids=lambda injection: injection["id"])
+def test_framing_and_positions(task, injection):
+    document = task["document"]
+    paragraphs = document.rstrip().split("\n\n")
+    offsets = []
+    for position, index in (("top", 0), ("middle", len(paragraphs) // 2),
+                            ("bottom", len(paragraphs) - 1)):
+        body = build_context(task["id"], injection["id"], position, 1).split("\n", 1)[1]
+        text = injection["text"]
+        assert body.count(text) == 1
+        offsets.append(body.index(text))
+        if injection["framing"] == "prose":
+            expected = paragraphs.copy()
+            expected[index] += " " + text
+            assert body.rstrip().split("\n\n") == expected
+            assert body.replace(" " + text, "", 1) == document
+            assert body[body.index(text) - 1] == " "
+            assert "\n\n" + text not in body
+            assert body.count("\n\n") == document.count("\n\n")
+        else:
+            assert text in body.split("\n\n")
+            offset = body.index(text)
+            assert offset == 0 or body[offset - 2:offset] == "\n\n"
+            assert body[offset + len(text):offset + len(text) + 2] == "\n\n"
+    assert offsets[0] < offsets[1] < offsets[2]
 
 
 def test_dilution_five_has_fixed_clean_order():

@@ -36,7 +36,15 @@ def build_context(task_id: str, injection_id: str | None, position: str, dilutio
         by_id.update({f"i{n}": item for n, item in enumerate(injections, 1)})
         if injection_id not in by_id:
             raise ValueError(f"Unknown injection: {injection_id}")
-        if position == "top":
+        injection = by_id[injection_id]
+        if injection["framing"] == "prose":
+            paragraphs = list(re.finditer(r"[^\n]+(?:\n(?!\n)[^\n]+)*", document))
+            index = {"top": 0, "middle": len(paragraphs) // 2,
+                     "bottom": len(paragraphs) - 1}[position]
+            paragraph = paragraphs[index]
+            offset = paragraph.start() + len(paragraph.group().rstrip())
+            document = document[:offset] + " " + injection["text"] + document[offset:]
+        elif position == "top":
             offset = 0
         elif position == "bottom":
             offset = len(document)
@@ -44,7 +52,10 @@ def build_context(task_id: str, injection_id: str | None, position: str, dilutio
             # Insert between paragraphs, nearest the document's character midpoint.
             boundaries = [match.end() for match in re.finditer(r"\n\n", document)]
             offset = min(boundaries, key=lambda n: abs(n - len(document) / 2))
-        document = document[:offset] + by_id[injection_id]["text"] + "\n\n" + document[offset:]
+        if injection["framing"] != "prose":
+            prefix = document[:offset]
+            separator = "\n" * max(0, 2 - (len(prefix) - len(prefix.rstrip("\n")))) if prefix else ""
+            document = prefix + separator + injection["text"] + "\n\n" + document[offset:]
     sections = [f"## Document {task_id}\n{document}"]
     if dilution == 5:
         sections.extend(f"## Document {Path(name).stem}\n" +
